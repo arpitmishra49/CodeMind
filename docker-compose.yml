@@ -1,0 +1,44 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: codemind-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://frontend:3000
+      - FAISS_INDEX_PATH=/app/data/faiss_indexes
+      - TEMP_DIR=/app/data/temp
+      - DEBUG=${DEBUG:-false}
+    volumes:
+      - codemind-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:8000
+    container_name: codemind-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  codemind-data:
