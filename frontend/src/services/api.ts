@@ -119,9 +119,13 @@ export function createStreamingQuery(
               case 'sources':
                 callbacks.onSources?.(json.sources)
                 break
-              case 'token':
-                callbacks.onToken?.(json.content)
-                break
+                case 'token': {
+                  const token = typeof json.content === 'string'
+                    ? json.content
+                    : JSON.stringify(json.content)
+                  callbacks.onToken?.(token)
+                  break
+                }
               case 'done':
                 callbacks.onDone?.(json.full_response)
                 break
