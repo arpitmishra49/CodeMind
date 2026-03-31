@@ -126,9 +126,13 @@ export function createStreamingQuery(
                   callbacks.onToken?.(token)
                   break
                 }
-              case 'done':
-                callbacks.onDone?.(json.full_response)
-                break
+                case 'done': {
+                  const resp = typeof json.full_response === 'string'
+                    ? json.full_response
+                    : JSON.stringify(json.full_response)
+                  callbacks.onDone?.(resp)
+                  break
+                }
               case 'error':
                 callbacks.onError?.(json.message)
                 break
